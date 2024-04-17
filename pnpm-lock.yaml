@@ -5,9 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
-  '@mercuryworkshop/alicejs':
-    specifier: link:/home/ce/Documents/GitHub/AliceJS/
-    version: link:../AliceJS
+  dreamland:
+    specifier: ^0.0.10
+    version: 0.0.10
   esbuild:
     specifier: ^0.20.0
     version: 0.20.0
@@ -376,6 +376,12 @@ packages:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
 
+  /dreamland@0.0.10:
+    resolution: {integrity: sha512-XgyEO6zTV7tIgdAiWfr8bLt+iuGtXRAomeJMKv8OdhwMpd0bP1rcLYaMRs0/v0Ly/7Wa6ezY9BFRV58O0+tLrQ==}
+    dependencies:
+      rollup-plugin-strip-code: 0.2.7
+    dev: true
+
   /esbuild-plugin-d.ts@1.2.3(typescript@5.3.3):
     resolution: {integrity: sha512-JkNqcCTkv0N39izAOLaiAQcFA6DfbhDkef1ZO6NvnHtTT+7i+4VHjCcAM2yFslRTBTK1TuF41FLSwWvGm88N7w==}
     engines: {node: '>=12.0.0'}
@@ -416,6 +422,10 @@ packages:
       '@esbuild/win32-arm64': 0.20.0
       '@esbuild/win32-ia32': 0.20.0
       '@esbuild/win32-x64': 0.20.0
+    dev: true
+
+  /estree-walker@0.6.1:
+    resolution: {integrity: sha512-SqmZANLWS0mnatqbSfRP5g8OXZC12Fgg1IwNtLsyHDzJizORW4khDfjPqJZsemPWBB2uqykUah5YpQ6epsqC/w==}
     dev: true
 
   /estree-walker@2.0.2:
@@ -491,6 +501,12 @@ packages:
       yallist: 4.0.0
     dev: true
 
+  /magic-string@0.25.3:
+    resolution: {integrity: sha512-6QK0OpF/phMz0Q2AxILkX2mFhi7m+WMwTRg0LQKq/WBB0cDP4rYH3Wp4/d3OTXlrPLVJT/RFqj8tFeAR4nk8AA==}
+    dependencies:
+      sourcemap-codec: 1.4.8
+    dev: true
+
   /make-dir@3.1.0:
     resolution: {integrity: sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==}
     engines: {node: '>=8'}
@@ -534,6 +550,13 @@ packages:
       find-up: 4.1.0
     dev: true
 
+  /rollup-plugin-strip-code@0.2.7:
+    resolution: {integrity: sha512-+5t9u/VrHPSfiRWWKMVin+KOtFwFak337FAZxeTjxYDjB3DDoHBQRkXHQvBn713eAfW81t41mGuysqsMXiuTjw==}
+    dependencies:
+      magic-string: 0.25.3
+      rollup-pluginutils: 2.8.1
+    dev: true
+
   /rollup-plugin-typescript2@0.36.0(rollup@4.11.0)(typescript@5.3.3):
     resolution: {integrity: sha512-NB2CSQDxSe9+Oe2ahZbf+B4bh7pHwjV5L+RSYpCu7Q5ROuN94F9b6ioWwKfz3ueL3KTtmX4o2MUH2cgHDIEUsw==}
     peerDependencies:
@@ -547,6 +570,12 @@ packages:
       semver: 7.6.0
       tslib: 2.6.2
       typescript: 5.3.3
+    dev: true
+
+  /rollup-pluginutils@2.8.1:
+    resolution: {integrity: sha512-J5oAoysWar6GuZo0s+3bZ6sVZAC0pfqKz68De7ZgDi5z63jOVZn1uJL/+z1jeKHNbGII8kAyHF5q8LnxSX5lQg==}
+    dependencies:
+      estree-walker: 0.6.1
     dev: true
 
   /rollup@4.11.0:
@@ -583,6 +612,11 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
+    dev: true
+
+  /sourcemap-codec@1.4.8:
+    resolution: {integrity: sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==}
+    deprecated: Please use @jridgewell/sourcemap-codec instead
     dev: true
 
   /supports-color@7.2.0:
