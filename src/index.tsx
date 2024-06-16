@@ -21,11 +21,11 @@ export const Route: Component<
     ComponentElement<typeof Route>[] | ComponentElement<typeof Redirect>[];
   },
   "route" | "render"
-> = function () {
+> = function() {
   return <div />;
 };
 
-Route.prototype.render = function (
+Route.prototype.render = function(
   this: ThisParameterType<typeof Route>,
   root: HTMLElement,
 ) {
@@ -37,7 +37,7 @@ Route.prototype.render = function (
   });
 };
 
-Route.prototype.route = function (
+Route.prototype.route = function(
   this: ThisParameterType<typeof Route>,
   path: string,
 ) {
@@ -51,7 +51,7 @@ Route.prototype.route = function (
   if (pathname[pathname.length - 1] != "/") pathname += "/";
   this._route(pathname.replace(this.path, ""));
 };
-Route.prototype._route = function (
+Route.prototype._route = function(
   this: ThisParameterType<typeof Route>,
   path: string,
 ) {
@@ -110,23 +110,21 @@ export const Redirect: Component<
     to: string;
   },
   {}
-> = function () {
+> = function() {
   return <div />;
 };
 
 export const Link: Component<
   {
     class?: string;
-    activeClass?: string;
     active?: boolean;
     href: string;
   },
   {
     children: any;
   }
-> = function () {
+> = function() {
   this.class ??= "dllink";
-  this.activeClass ??= "active";
   this.active ??= false;
 
   const el = (
@@ -137,10 +135,9 @@ export const Link: Component<
         e.stopImmediatePropagation();
         $activerouter?.route(this.href);
       }}
-      class={[
-        use(this.class),
-        use(this.active, (active) => active && this.activeClass),
-      ]}
+
+      class:active={use(this.active)}
+      class={use(this.class)}
     >
       {this.children}
     </a>
