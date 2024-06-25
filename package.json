@@ -20,7 +20,7 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "dreamland": "^0.0.19",
+    "dreamland": "link:../dreamland",
     "esbuild": "^0.20.2",
     "esbuild-plugin-d.ts": "^1.2.3",
     "rollup": "^4.17.2",

@@ -1,151 +1,203 @@
-let $activerouter: ThisParameterType<typeof Route> | null;
-let $state: string[] = [];
-let $links: DLElement<{
-  class?: string;
-  activeClass?: string;
-  active?: boolean;
-  href: string;
-}>[] = [];
+let globalrouter: Router | null = null;
 
-export const Route: Component<
-  {
-    path: string;
-    show?: ComponentElement<any>;
-    regex?: boolean;
-    render: (root: HTMLElement) => void;
-    route: (path: string) => void;
-  },
-  {
-    _route: (path: string) => void;
-    children: // @ts-ignore - self-referential type
-    ComponentElement<typeof Route>[] | ComponentElement<typeof Redirect>[];
-  },
-  "route" | "render"
-> = function() {
-  return <div />;
-};
+export class Router {
+  private el: HTMLElement = null!;
 
-Route.prototype.render = function(
-  this: ThisParameterType<typeof Route>,
-  root: HTMLElement,
-) {
-  $activerouter = this;
-  root.appendChild(this.root);
-  this.route(location.pathname);
-  window.addEventListener("popstate", () => {
-    this.route($state.pop()!);
-  });
-};
+  constructor(private root: ComponentElement<typeof Route>) {
+    if (globalrouter) {
+      throw new Error("Only one router can be created");
+    }
 
-Route.prototype.route = function(
-  this: ThisParameterType<typeof Route>,
-  path: string,
-) {
-  for (const link of $links) {
-    link.$.active = link.$.href == path;
+    globalrouter = this;
+
+    (window as any).r = globalrouter;
   }
-  let a = (<a href={path}></a>) as HTMLAnchorElement;
-  let pathname = new URL(a.href).pathname;
-  $state.push(pathname);
-  history.pushState({}, "", pathname);
-  if (pathname[pathname.length - 1] != "/") pathname += "/";
-  this._route(pathname.replace(this.path, ""));
-};
-Route.prototype._route = function(
-  this: ThisParameterType<typeof Route>,
-  path: string,
-) {
-  if (this.children.length < 1) return;
-  if (this.show?.$) this.show.$.outlet = "";
-  a: for (const { $: route } of this.children) {
-    let paths = path.split("/");
-    let route_paths = route.path.split("/");
 
-    // console.log(paths, route_paths);
-    let len = route_paths.length;
-    for (let i = 0; i < len; i++) {
-      let routepath = route_paths.shift()!;
-      let path = paths.shift()!;
-      // console.log("testing,", routepath, path);
-      if (route.regex) {
-        let regex = new RegExp(routepath);
-        if (!regex.test(path)) {
-          continue a;
+  public navigate(path: string): boolean {
+    history.pushState(null, "", path);
+    return this.route(path);
+  }
+
+  public route(path: string): boolean {
+    if (this.root.$.path) throw new Error("Root route cannot have a path");
+
+    let url = new URL(path, location.origin);
+
+    path = url.pathname;
+
+    if (path[0] == "/") path = path.slice(1);
+
+    return this.subroute(path, path, this.root)!;
+  }
+
+
+  private subroute(path: string, subpath: string, root: ComponentElement<typeof Route>): boolean | null {
+    match: for (let route of root.$.children) {
+      let routepath = route.$.path;
+      if (typeof routepath !== "string") throw new Error("Route must have a path");
+      if (routepath[0] == "/") routepath = routepath.slice(1);
+
+      let splitpath = subpath.split("/");
+      let splittarget = routepath.split("/");
+
+
+      let urlparams: Record<string, string> = {};
+
+      while (true) {
+        let pathpart = splitpath.shift();
+        let target = splittarget.shift();
+
+        // both empty => exact match
+        if (!pathpart && !target) break;
+
+        // matched fully, but there's more url to go => try to match children
+        if (!target && pathpart && route.$.children.length > 0) {
+          splitpath.unshift(pathpart);
+          break;
         }
-      } else {
-        if (routepath.startsWith(":")) {
-          let varname = routepath.slice(1);
-          if (route.show) route.show.$[varname] = path;
-        } else if (routepath != path) {
-          continue a;
+
+        // only a partial match of target => no match
+        if (!pathpart || !target) continue match;
+
+
+        if (target.startsWith(":")) {
+          let varname = target.slice(1);
+          urlparams[varname] = pathpart;
+        } else if (target.startsWith("*")) {
+          // don't check the rest of the path
+          break;
+        } else if (pathpart != target) {
+          continue match;
         }
       }
-    }
-    // console.log("matched with", route.path, route_paths, paths);
 
-    if (route instanceof Redirect) {
-      // console.log("redirecting to", route.to);
-      $activerouter!.route(route.to);
+      if (route.$ instanceof Redirect) {
+        let a = document.createElement("a");
+        let to = route.$.to;
+        if (typeof to == "function") to = to(path, urlparams);
+        a.href = to;
+
+        this.navigate(a.pathname + a.search);
+
+        // cancel
+        return null;
+      }
+
+      if (route.$.children.length > 0) {
+        // if child 404s start matching back from parent
+
+        let res = this.subroute(path, splitpath.join("/"), route as ComponentElement<typeof Route>);
+        if (res === null) return null;
+
+        if (!res) continue match;
+      }
+
+      // if we got here, we have a match
+      let show = route.$.show;
+      if (typeof show == "function") show = show(path, urlparams);
+
+      if (!show) throw new Error(`Route ${route.$.path} has no show target`);
+
+
+      if ("$" in show) {
+        for (let key in urlparams) {
+          show.$[key] = urlparams[key];
+        }
+
+        show.$.routeshown = true;
+        if (show.$.routeshow)
+          show.$.routeshow(path);
+      }
+
+      for (let otherroute of root.$.children) {
+        if (otherroute.$ instanceof Redirect) continue;
+
+        if (!otherroute.$.show) throw new Error(`Route ${otherroute.$.path} has no show target`);
+        if ("$" in otherroute.$.show && otherroute.$.show != show) {
+          otherroute.$.show.$.routeshown = false;
+          if (otherroute.$.show.$.routehide)
+            otherroute.$.show.$.routehide();
+        }
+      }
+
+      if (root == this.root && !this.root.$.show) {
+        this.el.replaceWith(show);
+      } else {
+        let parentshow = root.$.show
+        if (!("$" in parentshow!)) throw new Error("If subroutes are specified, show target must be a functional component");
+
+        parentshow.$.outlet = show;
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  public mount(root: HTMLElement) {
+
+    if (this.root.$.show) {
+      let show = this.root.$.show;
+      if (typeof show == "function") show = show(location.pathname, {});
+      this.el = show;
     } else {
-      if (this.show?.$) {
-        this.show.$.outlet = route.show;
-      } else {
-        let comp = route.show || route.root;
-
-        this.root.replaceWith(comp);
-        this.root = comp;
-      }
-
-      route["_route"](paths.join("/"));
+      this.el = <temporary />;
     }
-    return;
+
+    root.append(this.el);
+    this.route(location.pathname + location.search);
+
+    window.addEventListener("popstate", () => {
+      this.route(location.pathname + location.search);
+    });
+
   }
 
-  if (this.show?.$) this.show.$.outlet = "";
-};
 
-export const Redirect: Component<
-  {
-    path: string;
-    to: string;
-  },
-  {}
-> = function() {
+}
+
+type ShowTarget = DLElement<{
+  outlet?: HTMLElement
+  routeshow?: (path: string) => void
+  routehide?: () => void
+  routeshown: boolean
+
+  [index: string]: any
+}> | HTMLElement
+
+export const Route: Component<{
+  path?: string;
+  show?: ShowTarget | ((path: string, params: Record<string, string>) => ShowTarget)
+}, {}, {
+  children: (ComponentElement<typeof Route> | ComponentElement<typeof Redirect>)[]
+}> = function() {
+  // exists only to collect data
   return <div />;
-};
+}
 
-export const Link: Component<
-  {
-    class?: string;
-    active?: boolean;
-    href: string;
-  },
-  {
-    children: any;
-  }
-> = function() {
-  this.class ??= "dllink";
-  this.active ??= false;
+export const Redirect: Component<{
+  path: string;
+  to: string | ((path: string) => string);
+}> = function() {
 
-  const el = (
-    <a
-      href={this.href}
-      on:click={(e) => {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        $activerouter?.route(this.href);
-      }}
+  return <div />;
+}
 
-      class:active={use(this.active)}
-      class={use(this.class)}
-    >
-      {this.children}
-    </a>
-  );
+export const Link: Component<{
+  href: string;
+  class?: string;
+}, {
+  _leak: true
+  root: HTMLAnchorElement
+  children: any
+}> = function() {
+  this._leak = true;
 
-  this.mount = () => {
-    $links.push(el);
-  };
-
-  return el;
-};
+  return <a href={this.href} class={use(this.class)}
+    on:click={e => {
+      e.preventDefault();
+      if (!globalrouter) throw new Error("No router exists");
+      globalrouter.navigate(this.root.href);
+    }}>{this.children}</a>
+}
