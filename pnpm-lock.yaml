@@ -4,10 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-devDependencies:
+dependencies:
   dreamland:
-    specifier: link:../dreamland
-    version: link:../dreamland
+    specifier: 0.0.23-pre
+    version: 0.0.23-pre
+
+devDependencies:
   esbuild:
     specifier: ^0.20.2
     version: 0.20.2
@@ -402,6 +404,10 @@ packages:
   /commondir@1.0.1:
     resolution: {integrity: sha512-W9pAhw0ja1Edb5GVdIF1mjZw/ASI0AlShXM83UUGe2DVr5TdAPEA1OA8m/g8zWp9x6On7gqufY+FatDbC3MDQg==}
     dev: true
+
+  /dreamland@0.0.23-pre:
+    resolution: {integrity: sha512-x8v51a+cm8sQ3DqCXCmz0ejbURtMgpk+fCD+cw3fxFxCBDtTTBL2vcSwi/WrVJ49IOnVg6z7LRFdZjz1S8CpJg==}
+    dev: false
 
   /esbuild-plugin-d.ts@1.2.3(typescript@5.4.5):
     resolution: {integrity: sha512-JkNqcCTkv0N39izAOLaiAQcFA6DfbhDkef1ZO6NvnHtTT+7i+4VHjCcAM2yFslRTBTK1TuF41FLSwWvGm88N7w==}
